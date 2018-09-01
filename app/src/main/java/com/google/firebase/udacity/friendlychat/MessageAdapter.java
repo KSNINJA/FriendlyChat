@@ -2,13 +2,17 @@ package com.google.firebase.udacity.friendlychat;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.database.collection.LLRBNode;
 
 import java.util.List;
 
@@ -26,6 +30,8 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
         ImageView photoImageView = (ImageView) convertView.findViewById(R.id.photoImageView);
         TextView messageTextView = (TextView) convertView.findViewById(R.id.messageTextView);
         TextView authorTextView = (TextView) convertView.findViewById(R.id.nameTextView);
+        LinearLayout messageItem = (LinearLayout) convertView.findViewById(R.id.message_item);
+
 
         FriendlyMessage message = getItem(position);
 
@@ -33,6 +39,7 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
         if (isPhoto) {
             messageTextView.setVisibility(View.GONE);
             photoImageView.setVisibility(View.VISIBLE);
+            messageTextView.setText(message.getPhotoUrl());
             Glide.with(photoImageView.getContext())
                     .load(message.getPhotoUrl())
                     .into(photoImageView);
@@ -41,7 +48,8 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
             photoImageView.setVisibility(View.GONE);
             messageTextView.setText(message.getText());
         }
-        authorTextView.setText(message.getName());
+        messageItem.setBackgroundColor(Color.WHITE);
+        authorTextView.setText('-'+message.getName());
 
         return convertView;
     }
