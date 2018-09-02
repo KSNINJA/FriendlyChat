@@ -3,6 +3,9 @@ package com.google.firebase.udacity.friendlychat;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.ColorSpace;
+import android.text.Layout;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -48,8 +51,17 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
             photoImageView.setVisibility(View.GONE);
             messageTextView.setText(message.getText());
         }
-        messageItem.setBackgroundColor(Color.WHITE);
-        authorTextView.setText('-'+message.getName());
+        String mUsername = MainActivity.mUsername;
+
+       if(message.getName() == mUsername)
+        {
+            messageItem.setBackgroundColor(Color.parseColor("#FFF8C5"));
+       }
+        else {
+            messageItem.setBackgroundColor(Color.WHITE);
+        }
+
+        authorTextView.setText('-' + message.getName());
 
         return convertView;
     }

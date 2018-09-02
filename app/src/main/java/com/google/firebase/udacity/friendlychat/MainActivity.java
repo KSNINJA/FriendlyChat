@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText mMessageEditText;
     private Button mSendButton;
 
-    private String mUsername;
+    public static String mUsername;
 
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mMessagesDatabaseReference;
@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
         mMessageEditText = (EditText) findViewById(R.id.messageEditText);
         mSendButton = (Button) findViewById(R.id.sendButton);
 
+        mMessageListView.setSmoothScrollbarEnabled(true);
         // Initialize message ListView and its adapter
         final List<FriendlyMessage> friendlyMessages = new ArrayList<>();
         mMessageAdapter = new MessageAdapter(this, R.layout.item_message, friendlyMessages);
@@ -248,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
         mUsername = ANONYMOUS;
         mMessageAdapter.clear();
     }
+
     private void attachReadListener(){
         if(mChildEventListener ==null ) {
             mChildEventListener = new ChildEventListener() {
