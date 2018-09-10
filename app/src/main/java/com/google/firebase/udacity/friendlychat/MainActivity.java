@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String ANONYMOUS = "anonymous";
     public static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     public static final int RC_SIGN_IN = 1;
-    public static final int RC_PHOTO_PICKER  = 1;
+    public static final int RC_PHOTO_PICKER  = 2;
     private ListView mMessageListView;
     private MessageAdapter mMessageAdapter;
     private ProgressBar mProgressBar;
@@ -91,11 +91,11 @@ public class MainActivity extends AppCompatActivity {
         mChatPhotosStorageReference = mFirebaseStorage.getReference().child("chat_photos");
 
         // Initialize references to views
-        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
-        mMessageListView = (ListView) findViewById(R.id.messageListView);
-        mPhotoPickerButton = (ImageButton) findViewById(R.id.photoPickerButton);
-        mMessageEditText = (EditText) findViewById(R.id.messageEditText);
-        mSendButton = (Button) findViewById(R.id.sendButton);
+        mProgressBar = findViewById(R.id.progressBar);
+        mMessageListView = findViewById(R.id.messageListView);
+        mPhotoPickerButton = findViewById(R.id.photoPickerButton);
+        mMessageEditText = findViewById(R.id.messageEditText);
+        mSendButton = findViewById(R.id.sendButton);
 
         mMessageListView.setSmoothScrollbarEnabled(true);
         // Initialize message ListView and its adapter
@@ -163,13 +163,15 @@ public class MainActivity extends AppCompatActivity {
                 else{
                     //signed out
                     onSignOut();
+                    List<AuthUI.IdpConfig> providers = Arrays.asList(
+                            new AuthUI.IdpConfig.EmailBuilder().build(),
+                            new  AuthUI.IdpConfig.GoogleBuilder().build());
                     startActivityForResult(
                             AuthUI.getInstance()
                                     .createSignInIntentBuilder()
+                                    .setAvailableProviders(providers)
                                     .setIsSmartLockEnabled(false)
-                                    .setAvailableProviders(Arrays.asList(
-                                            new AuthUI.IdpConfig.GoogleBuilder().build(),
-                                            new AuthUI.IdpConfig.EmailBuilder().build()))
+                                    .setLogo(R.mipmap.ic_launcher)
                                     .build(),
                             RC_SIGN_IN);
                 }
@@ -181,23 +183,11 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode,resultCode,data);
         if(requestCode == RC_SIGN_IN){
             if(requestCode == RC_PHOTO_PICKER && resultCode ==RESULT_OK){
-                final Uri selectedImageUri = data.getData();
-                final StorageReference photoRef = mChatPhotosStorageReference.child(selectedImageUri.getLastPathSegment());
-                photoRef.putFile(selectedImageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        photoRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                Uri downloadUrl = uri;
-                                FriendlyMessage friendlyMessage = new FriendlyMessage(null, mUsername , downloadUrl.toString());
-                                mMessagesDatabaseReference.push().setValue(friendlyMessage);
-                            }
-                        });
+                Uri selectedImageUri = data.getData();
+                StorageReference photoRef = mChatPhotosStorageReference.child(selectedImageUri.getLastPathSegment());
+                photoRef.putFile(selectedImageUri);
+                }
 
-                    }
-                });
-                };
         }
     }
 
@@ -226,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause()
     {
         super.onPause();
-        if(mAuthStateListener != null) {
+        if(mAuthStateListener!=null) {
             mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         }
         detachReadListener();
@@ -266,7 +256,8 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
+                   FriendlyMessage friendlyMessage = dataSnapshot.getValue((FriendlyMessage.class));
+                   mMessageAdapter.remove(friendlyMessage);
                 }
 
                 @Override
