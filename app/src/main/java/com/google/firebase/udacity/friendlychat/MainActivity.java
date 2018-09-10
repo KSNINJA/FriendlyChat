@@ -16,6 +16,7 @@
 package com.google.firebase.udacity.friendlychat;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     public static final int RC_SIGN_IN = 1;
     public static final int RC_PHOTO_PICKER  = 2;
+    public static final int RC_BACKGROUND_PICKER = 3;
     private ListView mMessageListView;
     private MessageAdapter mMessageAdapter;
     private ProgressBar mProgressBar;
@@ -181,16 +183,41 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode ,int resultCode, Intent data){
         super.onActivityResult(requestCode,resultCode,data);
-        if(requestCode == RC_SIGN_IN){
-            if(requestCode == RC_PHOTO_PICKER && resultCode ==RESULT_OK){
-                Uri selectedImageUri = data.getData();
-                StorageReference photoRef = mChatPhotosStorageReference.child(selectedImageUri.getLastPathSegment());
-                photoRef.putFile(selectedImageUri);
-                }
+        if (requestCode == RC_SIGN_IN) {
+            if (resultCode == RESULT_OK) {
+                Toast.makeText(MainActivity.this, "User is signed in!", Toast.LENGTH_SHORT).show();
+            } else if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(MainActivity.this, "Sign in cancelled!", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
+        else if(requestCode == RC_PHOTO_PICKER && resultCode ==RESULT_OK )
+        {
+            final Uri selectedImageUri = data.getData();
+            final StorageReference photoRef = mChatPhotosStorageReference.child(selectedImageUri.getLastPathSegment());
+            photoRef.putFile(selectedImageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    photoRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                Uri downloadUrl = uri;
+                                FriendlyMessage friendlyMessage = new FriendlyMessage(null, mUsername , downloadUrl.toString());
+                                mMessagesDatabaseReference.push().setValue(friendlyMessage);
+                            }
+                        });
 
+                    }
+                });
+        }
+        else if(requestCode == RC_BACKGROUND_PICKER && resultCode == RESULT_OK)
+        {
+           Uri downloadUrl = data.getData();
+           String path = downloadUrl.getEncodedPath();
+
+           mMessageListView.setBackgroundResource(R.drawable.background1);
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -280,4 +307,6 @@ public class MainActivity extends AppCompatActivity {
             mChildEventListener = null;
         }
     }
+
+
 }

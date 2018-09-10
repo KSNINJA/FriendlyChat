@@ -53,7 +53,7 @@ public class MessageAdapter extends ArrayAdapter<FriendlyMessage> {
         }
         String mUsername = MainActivity.mUsername;
 
-       if(message.getName() == mUsername)
+       if(message.getName().equals(mUsername))
         {
             messageItem.setBackgroundColor(Color.parseColor("#FFF8C5"));
        }
